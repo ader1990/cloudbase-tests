@@ -1,82 +1,111 @@
-import stubout
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright 2012 Cloudbase Solutions Srl
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import json
 import mox
 import unittest
+import urllib2
 
+#from cloudbaseinit.metadata.services import base
 from cloudbaseinit.openstack.common import cfg
-from cloudbaseinit.metadata.services import base
-from cloudbaseinit.osutils import windows
-from cloudbaseinit.test import fake
+#from cloudbaseinit.test.metadata import fake
 from cloudbaseinit.metadata.services import httpservice
-from cloudbaseinit.metadata.services import base
-# ? from cloudbaseinit.utils import crypt
+#from cloudbaseinit.osutils import windows
 
 CONF = cfg.CONF
 
 
 class HttpServiceTest(unittest.TestCase):
-
-    def __init__(self):
-        self._mox = mox.Mox()
+    ''' testing http requests Class '''
 
     def setUp(self):
 
-        self._os_version = 6
-        self.path = 'fake\path'
-        self.password = 'Passw0rd'
+        self._mox = mox.Mox()
+        self._setup_stubs()
 
-        self.flags(metadata_base_url='http://169.254.169.254/')
-
-        self._mox.StubOutWithMock(windows.WindowsUtils,
-                                    'check_static_route_exists')
-        self._mox.StubOutWithMock(httpservice.HttpService,
-                                    '_check_metadata_ip_route')
-        self._mox.StubOutWithMock(httpservice.HttpService, '_get_response')
-        self._mox.StubOutWithMock(httpservice.HttpService, '_get_data')
-        self._mox.StubOutWithMock(httpservice.HttpService, '_post_data')
-        self._mox.StubOutWithMock(base.BaseMetadataService, 'get_meta_data')
-        self._mox.StubOutWithMock(base.BaseMetadataService, 'post_password')
+    def _setup_stubs(self):
+        self._mox.StubOutWithMock(urllib2, 'Request')
+        self._mox.StubOutWithMock(urllib2, 'urlopen')
+        #self._mox.StubOutWithMock(windows.WindowsUtils, 'get_os_version')
+        #not yet self._mox.StubOutWithMock(posixpath, 'join')
 
     def tearDown(self):
         self._mox.UnsetStubs()
+        self._mox.ResetAll()
 
-    def _test_load(self):
+    def test_get_meta_data(self):
+        svc = httpservice.HttpService()
 
-        self.httpservice.HttpService._check_metadata_ip_route()
+        fake_request = 'fake_request'
+        fake_meta_data = '{"fake_meta_data": "fake_value"}'
+        version = 'latest'
+        data_type = 'openstack'
 
-        m = base.BaseMetadataService.get_meta_data(mox.IsA(str))
-        m.AndReturn(data)
+        m = urllib2.Request(mox.IsA(str))
+        m.AndReturn(fake_request)
+
+        m = urllib2.urlopen(fake_request)
+        response_mock = mox.Mox().CreateMockAnything()
+        m1 = response_mock.read()
+        m1.AndReturn(fake_meta_data)
+        m.AndReturn(response_mock)
 
         self._mox.ReplayAll()
-        self.base.BaseMetadataService.get_meta_data('str')
+        meta_data = svc.get_meta_data(data_type, version)
         self._mox.VerifyAll()
 
-    def _test_post_password(self,):
-        m = base.BaseMetadataService.post_password(mox.IsA(str))
-        m.AndReturn(True)
+        meta_data_compare = json.loads(fake_meta_data)
+        self.assertEquals(meta_data, meta_data_compare)
 
-        self._mox.ReplayAll
-        self.base.BaseMetadataService.post_password(password)
-        self._mox.VerifyAll
 
-    def _test_get_response():
-        req = httpservice.HttpService._get_response()
-        assertRaise(req,)
 
-    def _test_get_data(self):
-        req = httpservice.HttpService._get_data(path)
-        self.assertEquals(req, )
 
-    def _test_post_data(self):
-        req = httpservice.HttpService._post_data(metadata_base_url, path)
-        self.assertTrue(req)
-
-    def test_http(self):
-        self._test_get_response()
-        self._test_get_data()
-        self._test_post_data()
-        self._test_load()
-        self._test_post_password()
 
 '''
-de definit instance_data #######
+    def test_post_password(self):
+        svc = httpservice.HttpService()
+
+        fake_request = 'fake_request'
+        fake_meta_data = '{"fake_meta_data": "fake_value"}'
+        version = 'latest'
+        data_type = 'openstack'
+        fake_data = 'fake_data'
+
+        m = urllib2.Request(mox.IsA(str))
+        m.AndReturn(fake_request)
+
+        m = urllib2.urlopen(fake_request, fake_data)
+        response_mock = mox.Mox().CreateMockAnything()
+        m1 = response_mock.read()
+        m1.AndReturn(fake_meta_data)
+        m.AndReturn(response_mock)
+
+        self._mox.ReplayAll()
+        meta_data = svc.get_meta_data(data_type, version)
+        self._mox.VerifyAll()
+
+        meta_data_compare = json.loads(fake_meta_data)
+        self.assertEquals(meta_data, meta_data_compare)
+
+        test_check_metadata_ip_route(self):
+            version = windows.WindowsUtils.get_os_version()
+            m.AndReturn(version)
+
+            self._mox.ReplayAll()
+            meta_data = svc._check_metadata_ip_route()
+            self._mox.VerifyAll()
+
 '''

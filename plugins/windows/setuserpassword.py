@@ -1,5 +1,6 @@
 import stubout
 import mox
+import sys
 import unittest
 
 from cloudbaseinit.metadata.services import base as services_base
@@ -10,6 +11,7 @@ from cloudbaseinit.plugins import base
 from cloudbaseinit.utils import crypt
 from cloudbaseinit.plugins.windows import setuserpassword
 from cloudbaseinit.metadata.services import httpservice
+from cloudbaseinit.test.metadata import fake
 
 
 CONF = cfg.CONF
@@ -52,6 +54,7 @@ class SetUserPasswordPluginTest(unittest.TestCase):
         self.assertEquals(len(passwrd), integer)
 
     def _test_user_password_set(self, integer, ):
+        fake_data = fake.get_fake_data()
         self.cloudbaseinit.utils.crypt.RSAWrapper.public_encrypt(mox.IsA(str))
 
         self.osutils.generate_random_password(mox.IsA(int))
@@ -70,7 +73,7 @@ class SetUserPasswordPluginTest(unittest.TestCase):
         password = setuserpassword.SetUserPasswordPlugin._get_password(osutils)
 
         self.setuserpassword.SetUserPasswordPlugin._set_metadata_password(
-                                    password, httpservice)
+            password, httpservice)
 
         self._mox.ReplayAll
 
