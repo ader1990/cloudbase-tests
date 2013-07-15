@@ -57,3 +57,16 @@ class HttpServiceTest(unittest.TestCase):
 
         meta_data_compare = json.loads(fake_meta_data)
         self.assertEqual(meta_data, meta_data_compare)
+
+    def test_post_password(self):
+        version = 'latest'
+
+        fake_request = urllib2.Request(mox.IsA(str), data=mox.IsA(str))
+        m = urllib2.urlopen(fake_request)
+        m.AndReturn(True)
+
+        self.mox.ReplayAll()
+        response = self.svc.post_password(self.password, version)
+        self.mox.VerifyAll()
+
+        self.assertTrue(response)
