@@ -1,6 +1,6 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-# Copyright 2012 Cloudbase Solutions Srl
+# Copyright 2013 Cloudbase Solutions Srl
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -19,7 +19,13 @@ import mox
 import unittest
 import urllib2
 
+#from cloudbaseinit.metadata.services import base
+#from cloudbaseinit.openstack.common import cfg
+#from cloudbaseinit.test.metadata import fake
 from cloudbaseinit.metadata.services import httpservice
+#from cloudbaseinit.osutils import windows
+
+#CONF = cfg.CONF
 
 
 class HttpServiceTest(unittest.TestCase):
@@ -28,6 +34,9 @@ class HttpServiceTest(unittest.TestCase):
     def setUp(self):
         self.mox = mox.Mox()
         self._setup_stubs()
+        self.version = 'latest'
+        self.password = 'password'
+        self.svc = httpservice.HttpService()
 
     def _setup_stubs(self):
         self.mox.StubOutClassWithMocks(urllib2, 'Request')
@@ -37,22 +46,19 @@ class HttpServiceTest(unittest.TestCase):
         self.mox.UnsetStubs()
 
     def test_get_meta_data(self):
-        svc = httpservice.HttpService()
-        response_mock = self.mox.CreateMockAnything()
-
         data_type = 'openstack'
         fake_meta_data = '{"fake_meta_data": "fake_value"}'
-        version = 'latest'
 
         fake_request = urllib2.Request(mox.IsA(str))
 
         m = urllib2.urlopen(fake_request)
+        response_mock = self.mox.CreateMockAnything()
         m.AndReturn(response_mock)
         m1 = response_mock.read()
         m1.AndReturn(fake_meta_data)
 
         self.mox.ReplayAll()
-        meta_data = svc.get_meta_data(data_type, version)
+        meta_data = self.svc.get_meta_data(data_type, self.version)
         self.mox.VerifyAll()
 
         meta_data_compare = json.loads(fake_meta_data)
